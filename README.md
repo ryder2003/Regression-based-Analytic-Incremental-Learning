@@ -146,9 +146,15 @@ python test_run.py        # Run quick test
 | Method | DTD | Oxford Flowers | Oxford Pets | Average |
 |--------|-----|----------------|-------------|---------|
 | Primal RAIL | 71.70% | 94.39% | 95.95% | **87.35%** |
-| Dual RAIL | - | - | - | - |
+| Dual RAIL | 71.93% | 97.97% | 92.91% | **87.60%** |
 
 *Trained with 16 shots per class on NVIDIA RTX 3050 6GB*
+
+**Key Findings:**
+- Both methods achieve strong performance with minimal catastrophic forgetting
+- Dual RAIL shows slightly better overall accuracy (87.60% vs 87.35%)
+- Dual RAIL excels on Oxford Flowers dataset (97.97%)
+- Primal RAIL performs better on Oxford Pets (95.95%)
 
 ## Citation
 ```bash
