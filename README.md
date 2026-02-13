@@ -32,7 +32,7 @@ RAIL addresses continual learning challenges in vision-language models by introd
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/YOUR_USERNAME/Regression-based-Analytic-Incremental-Learning.git
+git clone https://github.com/ryder2003/Regression-based-Analytic-Incremental-Learning.git
 cd Regression-based-Analytic-Incremental-Learning
 ```
 
