@@ -18,7 +18,6 @@ from utils import *
 
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-DIR_PATH = os.path.dirname(DIR_PATH)
 
 class continual_clip_adaptor(nn.Module):
     def __init__(self, cfg):
@@ -66,7 +65,7 @@ class continual_clip_adaptor(nn.Module):
                     auto_cor += torch.t(train_features) @ train_features
                     crs_cor += torch.t(train_features) @ (train_labels_one_hot)
 
-            R = np.mat(auto_cor.cpu().numpy() + cfg.regularization * np.eye(train_features.size(1))).I
+            R = np.asmatrix(auto_cor.cpu().numpy() + cfg.regularization * np.eye(train_features.size(1))).I
             R = torch.tensor(R).float().to(cfg.device)
 
             Delta = R @ crs_cor
@@ -134,164 +133,165 @@ def test_acc(test_loader, cfg):
     return top1, top5
 
 
-cfg_file = "configs/analytic_clip.yaml"
-cfg = yaml.load(open(cfg_file, 'r'), Loader=yaml.Loader)
-cfg = EasyDict(cfg)
+if __name__ == '__main__':
+    cfg_file = "configs/test_config.yaml"
+    cfg = yaml.load(open(cfg_file, 'r'), Loader=yaml.Loader)
+    cfg = EasyDict(cfg)
 
-seed = cfg.seed
-random.seed(seed)
-torch.manual_seed(seed)
-np.random.seed(seed)
-cfg.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    seed = cfg.seed
+    random.seed(seed)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    cfg.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-dataset_sequence = cfg.datasets
-print("Multi-task dataset sequence: ", dataset_sequence)
+    dataset_sequence = cfg.datasets
+    print("Multi-task dataset sequence: ", dataset_sequence)
 
-# Results
-fusion_acc_table = np.zeros((len(dataset_sequence), len(dataset_sequence)))
-adapter_acc_table = np.zeros((len(dataset_sequence), len(dataset_sequence)))
-in_domain_acc_list = []
+        # Results
+    fusion_acc_table = np.zeros((len(dataset_sequence), len(dataset_sequence)))
+    adapter_acc_table = np.zeros((len(dataset_sequence), len(dataset_sequence)))
+    in_domain_acc_list = []
 
-cfg.previous_class_num = 0
-current_class_names = []
-R = None
+    cfg.previous_class_num = 0
+    current_class_names = []
+    R = None
 
-merged_classnames = []
+    merged_classnames = []
 
-for _, train_dataset in enumerate(dataset_sequence):
-    if train_dataset == "cifar100":
-        dataset = CIFAR100(num_shots=-1, preprocess=None, val_transform=None, batch_size=cfg.batch_size)
-    elif train_dataset == "mnist":
-        dataset = MNIST(num_shots=-1, preprocess=None, val_transform=None, batch_size=cfg.batch_size)
-    else:
-        dataset = build_dataset(train_dataset, os.path.join(DIR_PATH, 'datasets'), cfg.num_shots)
-    merged_classnames += dataset.classnames
-    print(len(dataset.classnames))
-
-"""
-Loading model
-"""
-print('Loading pretrained CLIP model...')
-
-continual_clip_adaptor = continual_clip_adaptor(cfg)
-continual_clip_adaptor.clip_model.eval()
-
-train_transform = continual_clip_adaptor.train_preprocess
-val_preprocess = continual_clip_adaptor.val_preprocess
-
-"""
-Training on dataset sequence
-"""
-for task_id, train_dataset in enumerate(dataset_sequence):
-    print(f"------------------ Start training on task-{task_id + 1}: dataset-{train_dataset}. ---------------------")
-    if train_dataset == "cifar100":
-        dataset = CIFAR100(num_shots=cfg.num_shots, preprocess=train_transform, val_transform=val_preprocess,
-                           batch_size=cfg.batch_size)
-    elif train_dataset == "mnist":
-        dataset = MNIST(num_shots=cfg.num_shots, preprocess=train_transform, val_transform=val_preprocess,
-                        batch_size=cfg.batch_size)
-    else:
-        dataset = build_dataset(train_dataset, os.path.join(DIR_PATH, 'datasets'), cfg.num_shots)
-
-    current_class_names += dataset.classnames
-    cfg.increment = len(dataset.classnames)
-    cfg.current_class_num = len(current_class_names)
-
-    if train_dataset == "cifar100" or train_dataset == "mnist":
-        train_loader = dataset.train_loader
-    else:
-        train_loader = build_data_loader(data_source=dataset.train_x, batch_size=cfg.batch_size, tfm=train_transform,
-                                         is_train=True, shuffle=True, augmentation_time=cfg.augmentation_time)
-    R = continual_clip_adaptor.analytic_adaption(task_id, cfg, train_loader, R)
-
-    cfg.trained_class_num = cfg.current_class_num
+    for _, train_dataset in enumerate(dataset_sequence):
+        if train_dataset == "cifar100":
+            dataset = CIFAR100(num_shots=-1, preprocess=None, val_transform=None, batch_size=cfg.batch_size)
+        elif train_dataset == "mnist":
+            dataset = MNIST(num_shots=-1, preprocess=None, val_transform=None, batch_size=cfg.batch_size)
+        else:
+            dataset = build_dataset(train_dataset, os.path.join(DIR_PATH, 'datasets'), cfg.num_shots)
+        merged_classnames += dataset.classnames
+        print(len(dataset.classnames))
 
     """
-    Testing stage: test on every dataset (both trained & untrained) after training on each dataset
+    Loading model
     """
-    if cfg.eval_last and task_id < len(dataset_sequence) - 1:
-        continue
+    print('Loading pretrained CLIP model...')
 
-    tested_cls_num = 0
-    for test_id, test_dataset in enumerate(dataset_sequence):
-        if cfg.eval_adapter and test_id > task_id:
+    continual_clip_adaptor = continual_clip_adaptor(cfg)
+    continual_clip_adaptor.clip_model.eval()
+
+    train_transform = continual_clip_adaptor.train_preprocess
+    val_preprocess = continual_clip_adaptor.val_preprocess
+
+    """
+    Training on dataset sequence
+    """
+    for task_id, train_dataset in enumerate(dataset_sequence):
+        print(f"------------------ Start training on task-{task_id + 1}: dataset-{train_dataset}. ---------------------")
+        if train_dataset == "cifar100":
+            dataset = CIFAR100(num_shots=cfg.num_shots, preprocess=train_transform, val_transform=val_preprocess,
+                               batch_size=cfg.batch_size)
+        elif train_dataset == "mnist":
+            dataset = MNIST(num_shots=cfg.num_shots, preprocess=train_transform, val_transform=val_preprocess,
+                            batch_size=cfg.batch_size)
+        else:
+            dataset = build_dataset(train_dataset, os.path.join(DIR_PATH, 'datasets'), cfg.num_shots)
+
+        current_class_names += dataset.classnames
+        cfg.increment = len(dataset.classnames)
+        cfg.current_class_num = len(current_class_names)
+
+        if train_dataset == "cifar100" or train_dataset == "mnist":
+            train_loader = dataset.train_loader
+        else:
+            train_loader = build_data_loader(data_source=dataset.train_x, batch_size=cfg.batch_size, tfm=train_transform,
+                                             is_train=True, shuffle=True, augmentation_time=cfg.augmentation_time)
+        R = continual_clip_adaptor.analytic_adaption(task_id, cfg, train_loader, R)
+
+        cfg.trained_class_num = cfg.current_class_num
+
+        """
+        Testing stage: test on every dataset (both trained & untrained) after training on each dataset
+        """
+        if cfg.eval_last and task_id < len(dataset_sequence) - 1:
             continue
 
-        print(f"Evaluating on dataset-{test_id + 1}: {test_dataset}")
-        if test_dataset == "cifar100":
-            test_set = CIFAR100(num_shots=-1, preprocess=None, val_transform=val_preprocess, batch_size=cfg.batch_size)
-        elif test_dataset == "mnist":
-            test_set = MNIST(num_shots=-1, preprocess=None, val_transform=val_preprocess, batch_size=cfg.batch_size)
-        else:
-            test_set = build_dataset(test_dataset, os.path.join(DIR_PATH, 'datasets'), cfg.num_shots)
+        tested_cls_num = 0
+        for test_id, test_dataset in enumerate(dataset_sequence):
+            if cfg.eval_adapter and test_id > task_id:
+                continue
 
-        if test_dataset == "cifar100" or test_dataset == "mnist":
-            test_loader = test_set.test_loader
-        else:
-            test_loader = build_data_loader(data_source=test_set.test, batch_size=cfg.batch_size, is_train=False,
-                                            tfm=val_preprocess, shuffle=False)
+            print(f"Evaluating on dataset-{test_id + 1}: {test_dataset}")
+            if test_dataset == "cifar100":
+                test_set = CIFAR100(num_shots=-1, preprocess=None, val_transform=val_preprocess, batch_size=cfg.batch_size)
+            elif test_dataset == "mnist":
+                test_set = MNIST(num_shots=-1, preprocess=None, val_transform=val_preprocess, batch_size=cfg.batch_size)
+            else:
+                test_set = build_dataset(test_dataset, os.path.join(DIR_PATH, 'datasets'), cfg.num_shots)
 
-        template = ['a photo of a {}.']
-        # template = ['a photo of a {}.', 'a photo of an {}.']
-        clip_weights = clip_classifier(merged_classnames, template, continual_clip_adaptor.clip_model, device=cfg.device)
+            if test_dataset == "cifar100" or test_dataset == "mnist":
+                test_loader = test_set.test_loader
+            else:
+                test_loader = build_data_loader(data_source=test_set.test, batch_size=cfg.batch_size, is_train=False,
+                                                tfm=val_preprocess, shuffle=False)
 
-        class_range_min, class_range_max = tested_cls_num, tested_cls_num + len(test_set.classnames)
-        in_domain, in_domain_acc = 0.0, 0.0
-        adapter_in_domain, adapter_in_domain_acc = 0.0, 0.0
+            template = ['a photo of a {}.']
+            # template = ['a photo of a {}.', 'a photo of an {}.']
+            clip_weights = clip_classifier(merged_classnames, template, continual_clip_adaptor.clip_model, device=cfg.device)
 
-        top1, top5, test_num = 0.0, 0.0, 0.0
-        fusion_top1, fusion_top5 = 0.0, 0.0
+            class_range_min, class_range_max = tested_cls_num, tested_cls_num + len(test_set.classnames)
+            in_domain, in_domain_acc = 0.0, 0.0
+            adapter_in_domain, adapter_in_domain_acc = 0.0, 0.0
 
-        for inputs, targets in tqdm(test_loader, desc=f'Evaluating on dataset-{test_id + 1}: {test_dataset}',
-                                    total=len(test_loader), unit='batch'):
-            test_num += inputs.size(0)
+            top1, top5, test_num = 0.0, 0.0, 0.0
+            fusion_top1, fusion_top5 = 0.0, 0.0
 
-            inputs, targets = inputs.to(cfg.device), targets.to(cfg.device)
-            targets += tested_cls_num
+            for inputs, targets in tqdm(test_loader, desc=f'Evaluating on dataset-{test_id + 1}: {test_dataset}',
+                                        total=len(test_loader), unit='batch'):
+                test_num += inputs.size(0)
 
-            with torch.no_grad():
-                outputs = continual_clip_adaptor.zero_shot(inputs, clip_weights)  # (B, C_all)
-                outputs = F.softmax(outputs, dim=-1)
+                inputs, targets = inputs.to(cfg.device), targets.to(cfg.device)
+                targets += tested_cls_num
 
-            predict_cls = torch.argmax(outputs, dim=-1)
-
-            # Zero-shot acc
-            acc1, acc5 = cls_acc(outputs, targets, topk=(1, 5))
-            top1 += acc1
-            top5 += acc5
-
-            # Select ID samples belonging to learned domains by zero-shot
-            mask = predict_cls < cfg.current_class_num
-            if torch.sum(mask) > 0:
-                samples_to_adapt = inputs[mask]
                 with torch.no_grad():
-                    outputs_adapted = continual_clip_adaptor(samples_to_adapt)
+                    outputs = continual_clip_adaptor.zero_shot(inputs, clip_weights)  # (B, C_all)
+                    outputs = F.softmax(outputs, dim=-1)
 
-                padding_right = outputs.size(-1) - outputs_adapted.size(-1)
-                outputs_adapted = F.pad(outputs_adapted, pad=(0, padding_right, 0, 0), mode='constant', value=0)
+                predict_cls = torch.argmax(outputs, dim=-1)
 
-                outputs[mask] = (1-cfg.fusion_weight) * outputs[mask] + cfg.fusion_weight * outputs_adapted
+                # Zero-shot acc
+                acc1, acc5 = cls_acc(outputs, targets, topk=(1, 5))
+                top1 += acc1
+                top5 += acc5
 
-            # Fusion acc
-            fusion_acc1, fusion_acc5 = cls_acc(outputs, targets, topk=(1, 5))
-            fusion_top1 += fusion_acc1
-            fusion_top5 += fusion_acc5
+                # Select ID samples belonging to learned domains by zero-shot
+                mask = predict_cls < cfg.current_class_num
+                if torch.sum(mask) > 0:
+                    samples_to_adapt = inputs[mask]
+                    with torch.no_grad():
+                        outputs_adapted = continual_clip_adaptor(samples_to_adapt)
 
-        top1, top5 = (top1 / test_num) * 100, (top5 / test_num) * 100
-        print(f"Zero-shot top-1 acc for dataset-{test_id + 1}: {test_dataset}: {top1}")
+                    padding_right = outputs.size(-1) - outputs_adapted.size(-1)
+                    outputs_adapted = F.pad(outputs_adapted, pad=(0, padding_right, 0, 0), mode='constant', value=0)
 
-        fusion_acc = (fusion_top1 / test_num) * 100
-        print(f"***** Fusion top-1 acc for dataset-{test_id + 1}: {test_dataset}: {fusion_acc} *****")
-        fusion_acc_table[task_id, test_id] = fusion_acc
+                    outputs[mask] = (1-cfg.fusion_weight) * outputs[mask] + cfg.fusion_weight * outputs_adapted
 
-        tested_cls_num += len(test_set.classnames)
+                # Fusion acc
+                fusion_acc1, fusion_acc5 = cls_acc(outputs, targets, topk=(1, 5))
+                fusion_top1 += fusion_acc1
+                fusion_top5 += fusion_acc5
 
-upper_triangle_no_diag = np.triu(fusion_acc_table, k=1)
-masked_matrix = np.ma.masked_equal(upper_triangle_no_diag, 0)
-transfer_acc = np.mean(masked_matrix, axis=0)
-transfer_avg_acc = np.mean(transfer_acc)
-avg_acc = np.mean(fusion_acc_table, axis=0)
-avg_avg_acc = np.mean(avg_acc)
-print('average transfer acc: ', transfer_avg_acc)
-print('average average acc: ', avg_avg_acc)
-print('average last acc: ', np.mean(fusion_acc_table[-1, :]))
+            top1, top5 = (top1 / test_num) * 100, (top5 / test_num) * 100
+            print(f"Zero-shot top-1 acc for dataset-{test_id + 1}: {test_dataset}: {top1}")
+
+            fusion_acc = (fusion_top1 / test_num) * 100
+            print(f"***** Fusion top-1 acc for dataset-{test_id + 1}: {test_dataset}: {fusion_acc} *****")
+            fusion_acc_table[task_id, test_id] = fusion_acc
+
+            tested_cls_num += len(test_set.classnames)
+
+    upper_triangle_no_diag = np.triu(fusion_acc_table, k=1)
+    masked_matrix = np.ma.masked_equal(upper_triangle_no_diag, 0)
+    transfer_acc = np.mean(masked_matrix, axis=0)
+    transfer_avg_acc = np.mean(transfer_acc)
+    avg_acc = np.mean(fusion_acc_table, axis=0)
+    avg_avg_acc = np.mean(avg_acc)
+    print('average transfer acc: ', transfer_avg_acc)
+    print('average average acc: ', avg_avg_acc)
+    print('average last acc: ', np.mean(fusion_acc_table[-1, :]))

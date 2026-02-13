@@ -494,7 +494,7 @@ def build_data_loader(
         dataset_wrapper(data_source, input_size=input_size, transform=tfm, is_train=is_train,
                         augmentation_time=augmentation_time),
         batch_size=batch_size,
-        num_workers=8,
+        num_workers=0,  # Set to 0 for Windows compatibility
         shuffle=shuffle,
         drop_last=False,
         pin_memory=(torch.cuda.is_available())

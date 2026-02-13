@@ -125,7 +125,7 @@ class kernel_ridge_regression:
         Gaussian kernel only
         """
         self.kernel = kernel(X, X, gamma=self.gamma).cpu().numpy()
-        self.alpha = np.mat(self.kernel + self.lamda * np.eye(self.kernel.shape[0])).I @ Y
+        self.alpha = np.asmatrix(self.kernel + self.lamda * np.eye(self.kernel.shape[0])).I @ Y
         return self.alpha
 
     def predict(self, X, X_train):

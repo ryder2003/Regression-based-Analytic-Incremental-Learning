@@ -8,6 +8,7 @@ from .fgvc import FGVCAircraft
 from .food101 import Food101
 from .oxford_flowers import OxfordFlowers
 from .stanford_cars import StanfordCars
+from .mnist import MNISTWrapper
 from .collections import (
     CIFAR100,
     MNIST,
@@ -25,6 +26,7 @@ dataset_list = {
                 "oxford_flowers": OxfordFlowers,
                 "stanford_cars": StanfordCars,
                 "cifar100": CIFAR100,
+                "mnist": MNISTWrapper,
                 }
 
 
