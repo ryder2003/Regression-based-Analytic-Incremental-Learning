@@ -5,7 +5,7 @@
 [![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.x-orange.svg)](https://pytorch.org/)
 
-Official implementation of **"Advancing Cross-domain Discriminability in Continual Learning of Vision-Language Models"** accepted at **NeurIPS 2024**.
+Official implementation of **"Advancing Cross-domain Discriminability in Continual Learning of Vision-Language Models"**
 
 ## 📋 Overview
 
@@ -79,17 +79,7 @@ Please refer to [CoOp's dataset guide](https://github.com/KaiyangZhou/CoOp/blob/
 - Oxford-IIIT Pets
 - C📝 Citation
 
-If you find this work helpful, please cite:
 
-```bibtex
-@article{xu2024advancing,
-  title={Advancing Cross-domain Discriminability in Continual Learning of Vision-Language Models},
-  author={Xu, Yicheng and Chen, Yuxin and Nie, Jiahao and Wang, Yusong and Zhuang, Huiping and Okumura, Manabu},
-  journal={arXiv preprint arXiv:2406.18868},
-  year={2024},
-  note={Accepted at NeurIPS 2024}
-}
-```
 
 ## 🙏 Acknowledgements
 
@@ -97,27 +87,7 @@ This project builds upon excellent work from:
 - [CLIP](https://github.com/openai/CLIP) - OpenAI's vision-language model
 - [CoOp](https://github.com/KaiyangZhou/CoOp) - Context optimization for prompt learning
 
-## 📧 Contact
 
-For questions, discussions, or collaborations:
-- **Email**: yxu040@e.ntu.edu.sg
-- **WeChat**: linghan199
-
-## 📄 License
-
-This project is released under the MIT License. See [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-  <b>⭐ Star this repo if you find it helpful! ⭐</b>
-</div>yaml
-datasets: [dtd, oxford_flowers, oxford_pets]  # Dataset sequence
-backbone: ViT-B/16                            # CLIP backbone
-num_shots: 16                                 # Few-shot samples per class
-batch_size: 64                                # Training batch size
-hidden_dim: 2048                              # Feature expansion dimension
-```
 
 ## 🏃 Running Experiments
 
@@ -156,15 +126,7 @@ python test_run.py        # Run quick test
 - Dual RAIL excels on Oxford Flowers dataset (97.97%)
 - Primal RAIL performs better on Oxford Pets (95.95%)
 
-## Citation
-```bash
-@article{xu2024advancing,
-  title={Advancing Cross-domain Discriminability in Continual Learning of Vision-Language Models},
-  author={Xu, Yicheng and Chen, Yuxin and Nie, Jiahao and Wang, Yusong and Zhuang, Huiping and Okumura, Manabu},
-  journal={arXiv preprint arXiv:2406.18868},
-  year={2024}
-}
-```
+
 ---
 
 ## Acknowledgement
