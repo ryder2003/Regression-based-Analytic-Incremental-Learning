@@ -129,10 +129,5 @@ python test_run.py        # Run quick test
 
 ---
 
-## Acknowledgement
-
-Our repo benefits from [CLIP](https://github.com/openai/CLIP) and [CoOp](https://github.com/KaiyangZhou/CoOp). We thank them for their wonderful works.
-
----
 
 
