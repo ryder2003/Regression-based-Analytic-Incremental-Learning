@@ -5,7 +5,7 @@
 [![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-1.x-orange.svg)](https://pytorch.org/)
 
-Official implementation of **"Advancing Cross-domain Discriminability in Continual Learning of Vision-Language Models"**
+Implementation of **"Advancing Cross-domain Discriminability in Continual Learning of Vision-Language Models"**
 
 ## 📋 Overview
 
@@ -32,7 +32,7 @@ RAIL addresses continual learning challenges in vision-language models by introd
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/ryder2003/Regression-based-Analytic-Incremental-Learning.git
+git clone https://github.com/ryder2003/RAIL-Continual-Learning.git
 cd Regression-based-Analytic-Incremental-Learning
 ```
 
